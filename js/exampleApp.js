@@ -1,24 +1,39 @@
-model.export('head', {
-	title : 'Example labeling'
+model.export('contenedor', {
+	bind : 'Texto'
 });
 
 model.export('heredero', {
-	texto : 'Este es un elemento heredero'
+	propio : 'Texto propio'
 })
 
-model.export('body', {
-	nombre : 'Francisco Poblete',
-	contador : 0
+model.export('variable', {
+	contador : 0,
+	texto : 'Texto modificable'
 });
 
-controller.export('body', function(labels){
+controller.export('variable', function(labels){
 	var este = this;
 
 	labels.boton.click(function(){
 		este.contador++;
 	});
 
-	labels.boton2.click(function(){
-		alert('Tu nombre es: '+este.nombre);
+});
+
+controller.export('router', function(labels){
+	labels.boton.click(function(){
+		router.change('/section/hola');
 	});
+
+	labels.boton2.click(function(){
+		router.change('/');
+	});
+});
+
+router.export('/section/:name', function(data){
+	router.show('routerload', data);
+});
+
+router.export('/', function(data){
+	router.hidden('routerload');
 });

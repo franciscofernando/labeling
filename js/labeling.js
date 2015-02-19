@@ -4,6 +4,26 @@ if (!Object.prototype.watch){ Object.defineProperty(Object.prototype, "watch", {
 //Crea un prototipo watch en el arreglo
 if (!Array.prototype.watch){Array.defineProperty(Array.prototype, "watch", {enumerable: false ,configurable: true ,writable: false ,value: function (prop, handler) {var oldval = this[prop], newval = oldval, getter = function () { return newval; }, setter = function (val) {oldval = newval;return newval = handler.call(this, prop, oldval, val);};if (delete this[prop]) {Array.defineProperty(this, prop, {get: getter, set: setter, enumerable: true, configurable: true});}}});}
 
+$.fn.changeAll = function(callback){
+	var este = this;
+	var val = $(this).val();
+	var interval;
+
+	function init(){
+		interval = setInterval(function(){
+			if(val != $(este).val()){
+				val = $(este).val();
+				callback.call(este);
+			}
+		}, 20);		
+	}
+
+	$(this).focus(function(){ init(); });
+	$(this).focusout(function(){ clearInterval(interval); });
+
+	return this;
+};
+
 // **Modelo
 var model = {
 	//Constructor del modelo
@@ -34,15 +54,19 @@ var model = {
 			//Valida si el modelo del padre es igual al modelo del elemento
 			if( $(this).closest('*[name]').attr('name') == obj.attr('name') ){
 
-				var text = (this.modelText)?this.modelText:this.modelText = $(this).text(); //Valida el binding
-				var regexp = /\{\{([a-zA-Z0-9.\[\]\']+)\}\}/;
+				var text = ( $(this).is('input, textarea') )?$(this).val():$(this).text();
+					text = (this.modelText)?this.modelText:this.modelText = text; //Valida el binding
+				var regexp = /\{\{([a-zA-Z0-9.\[\]\'\#]+)\}\}/;
 
 				//Se repite hasta que no existan bindings
 				while( regexp.test(text) ){
 					var attr = regexp.exec(text)[1]; //Captura el contenido del binding
-
-					//Valida si existe el nombre de variable del binding y si es texto o numero
-					if( (typeof eval('e.'+attr) == 'string')||(typeof eval('e.'+attr) == 'number') ){
+					
+					if( /^#/.test(attr) ){
+						text = text.replace(regexp, '&lcub;&lcub;'+attr.replace(/^#/, '')+'&rcub;&rcub;');
+					}
+					else if( (typeof eval('e.'+attr) == 'string')||(typeof eval('e.'+attr) == 'number') ){
+						//Valida si existe el nombre de variable del binding y si es texto o numero
 						text = text.replace(regexp, eval('e.'+attr)); //Reemplaza el binding por el valor
 					}else{
 						var aux = false;
@@ -67,7 +91,19 @@ var model = {
 
 				//Valida si no tiene elementos hijos o comentarios en su interior
 				if((! $(this).children('*').length)&&(! $(this).contents().filter(function(){ return this.nodeType == 8; }).length) ){
-					$(this).text(text); //Imprime el texto nuevo
+					if( $(this).is('input, textarea') ){
+						var elem = this;
+						if(!this.changeAllEvent){
+							$(this).changeAll(function(){
+								elem.changeAllEvent = true;
+								var attr = elem.modelText.replace(/\{/g, '').replace(/\}/g, '');
+								e[attr] = $(this).val();
+							});
+						}
+						$(this).val(text); //Cambia el value del input
+					}else{
+						$(this).html(text); //Imprime el texto nuevo
+					}
 				}
 			}
 		});
@@ -115,9 +151,78 @@ var controller = {
 };
 // **Router
 var router = {
+	export : function(nameRouter, funcRouter){
+		router.routes[nameRouter] = funcRouter;
+	},
+	change : function(url, step){
+		if(step){
+			for(i in router.routes){
+				var dataGet = {};
+				var urlAux = url;
+				var iAux = i;
+				var regexp = iAux.replace(/:([a-zA-Z0-9]+)/g, '[a-zA-Z0-9]+');
+					regexp = new RegExp('^'+regexp+'$');
 
+				if( regexp.test(urlAux) ){
+					urlAux = urlAux.split(/\//g);
+					iAux = iAux.split(/\//g);
+
+					for(j = 0; j < iAux.length; j++){
+						if( /^:/.test(iAux[j]) ){
+							dataGet[iAux[j].replace(/^:/, '')] = urlAux[j];
+						}
+					}
+					router.routes[i](dataGet);
+				}
+			}
+		}else{
+			window.location.hash = '#'+url;
+		}
+	},
+	show : function(nameScene, data){
+		var url = router.options.initUrl+router.scenes[nameScene].url;
+
+		for(i in data){
+			url = url.replace(':'+i, data[i]);
+		}
+
+		url = url.replace(/:[a-zA-Z0-9]+/g, '');
+		router.hidden(nameScene);
+
+		$.get(url, function(data){
+			router.scenes[nameScene].obj.after(data);
+		});
+	},
+	hidden : function(nameScene){
+		var comment = false;
+		router.scenes[nameScene].obj
+			.parent()
+			.contents()
+			.each(function(){
+				if(comment){
+					if(!/:end$/.test((this.nodeValue||'').replace(/\s+$/, ''))){
+							$(this).remove();
+					}else{
+						comment = false;
+					}
+				}else{
+					comment = false;
+				}
+				if(this == router.scenes[nameScene].obj[0] ){
+					comment = (comment)?false:true;
+				}
+			});
+	},
+	routes : {},
+	scenes : {},
+	options : {
+		initUrl : '',
+		history : {}
+	}
 };
-
+window.onhashchange = function() {
+	router.change(window.location.hash.replace(/^#/, ''), true);
+}
 // **Comentarios dinamicos
 //Busca todos los elementos
 $('*').each(function(){
@@ -125,16 +230,14 @@ $('*').each(function(){
 	
 	$(this)
 		.contents() //Busca sus elementos "hijos"
-		.filter(function(){ //Filtra solo los comentarios
-			return this.nodeType == 8;
-		})
+		.filter(function(){ return this.nodeType == 8; }) //Filtra solo los comentarios
 		.each(function(i, e){ //Genera un siclo con los comentarios "hijos"
 			var label = $(this); //Guarda el comentario del DOM
 
 			//Valida el contenido del comentario
-			if( /^\s+?include\:/.test(e.nodeValue) ){ //En caso de ser un include:NOMBREDEARCHIVO
+			if( /^\s+?include\s/.test(e.nodeValue) ){ //En caso de ser un include:NOMBREDEARCHIVO
 				//Consulta el contenido del archivo
-				$.get(e.nodeValue.split(':')[1], function(data){
+				$.get(e.nodeValue.replace(/^\s+/g, '').replace(/\s+$/g, '').split(' ')[1], function(data){
 					$(label)
 						.after(data) //Despues del comentario imprime el conenido del archivo
 						.remove(); //Elimina el comentario
@@ -147,12 +250,25 @@ $('*').each(function(){
 						model.reload(model[name]);
 					}
 				});
+			}else if( /^\s+?router\s[a-zA-Z0-9]+\s.+/.test(e.nodeValue) ){
+				var values = e.nodeValue.replace(/^\s+/g, '').replace(/\s+$/g, '').split(/\s/g);
+				router.scenes[values[1]] = {
+					url : values[2],
+					obj : $(this)
+				};
+				e.nodeValue = values[1]+':start';
+				$(this).after('<!--'+values[1]+':end-->');
 			}
 		});
 });
 
 // **Inicializacion
 $(document).ready(function(){
+	//Guarda la base de la url
+	router.options.initUrl = window.location.origin+window.location.pathname.replace(/[a-zA-Z0-9\_\-\.]+$/, '');
+	//Llama el evento router
+	window.onhashchange();
+
 	//Busca todos los elementos con name=""
 	$('*[name]').each(function(){
 		var name = $(this).attr('name');

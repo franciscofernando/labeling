@@ -1,19 +1,113 @@
 <!DOCTYPE html>
 <html>
-<head name="head">
+<head>
 	<meta charset="utf-8" />
-	<title>{{title}}</title>
+	<title>Example | Home</title>
 	<script type="text/javascript" src="js/jquery.js"></script>
 </head>
-<body name="body">
-	<p>hola {{nombre}} - contador: {{contador}}</p>
-	<div name="heredero">
-		<p>{{texto}} - contador: {{contador}}</p>
+<body>
+	<h2>Introducción</h2>
+	<p>Labeling intenta ser un MV*, simple y flexible, rescata las buenas ideas de sus pares</p>
+
+	<h2>Atributo Name</h2>
+	<p>Lo principal en labeling es el atributo "name", este le da una identidad al elemento y lo transforma en un entorno.<br>
+		Ejemplo: &lt;div name="elemento" &gt; &lt;/div&gt;</p>
+	
+	<h2>Modelo</h2>
+	<p>El modelo es espacio donde se guardan los atributos y metodos del entorno, se inicializa con el nombre del entorno y un objeto con los datos. <br>
+		Ejemplo: model.export('elemento', { atributo : 'Texto' });</p>
+	
+	<h2>Controlador</h2>
+	<p>El controlador es una función que agrupa los atributos y metodos para el entorno. <br> Ejemplo: controller.export('elemento', function(){ console.log(this.atributo); });</p>
+	
+	<h3>Atributos</h3>
+	<p>Los atributos de un controlador son los datos del modelo, estos se rescatan con "this". <br>
+		Ejemplo: controller.export('elemento', function(){ alert('Este es el valor de atributo'+this.atributo); });</p>
+
+	<h3>Metodos</h3>
+	<p>Los metodos son funciones que son ejucutadas en el controlador, estas pueden de ser tipo evento o lineales. <br> 	Ejemplo: controller.export('elemento', function(){ this.metodo = function(texto){ this.atributo = 'Texto cambiado'; } });</p>
+
+	<h2>Bind(Lazo)</h2>
+	<p>Dentro de un elemento(que contenga solo texto) se puede poner etiquetas bind(Lazos) de esta manera: {{nombreDelAtributo}}</p>
+	<div name="contenedor">
+		<p>Binding: {{#bind}} = {{bind}}</p>
+		<h3>Herencia</h3>
+		<p>Si hay un entorno dentro de otro entorno, este hereda los datos de su modelo solo si el entorno hijo no tiene datos con el mismo nombre:</p>
+		<ul name="heredero">
+			<li>Variable heredada: {{#bind}} = {{bind}}</li>
+			<li>Variable propia: {{#propio}} = {{propio}}</li>
+		</ul>
 	</div>
-	<button label="boton">Contador +1</button>
-	<button label="boton2">Ver mi nombre</button>
-	<div id="algo">
-		<!-- include:example2.html -->
+	
+	<h2>Label(Etiqueta)</h2>
+	<p>No solo el entorno puede ser identificado sino tambien los elementos con el atributo label, esto sirve para usar el elemento de una manera mas facil en el controlador. <br> 
+		Ejemplo: &lt;button label="boton"&gt;BOTON&lt;/button&gt;</p>
+	
+	<h3>Llamar al elemento etiquetado</h3>
+	<p>Para llamar a la/las etiquetas del entorno se tiene que recibir el primer parametro del controlador. <br>
+		Ejemplo: controller.export('elemento', function(labels){ console.log(labels.boton); });</p>
+	
+	<h3>Eventos</h3>
+	<p>Como labeling funciona con jQuery, puedes usar los eventos de jquery para gatillar acciones. <br>
+		Ejemplo: controller.export('elemento', function(labels){ labels.boton.click(function(){ alert('Haz presionado a boton'); }); })</p>
+	
+	<h2>Modificación de atributos</h2>
+	<p>Si hay un lazo con un atributo, este cambia automaticamente si este cambia en el modelo.</p>
+	<div name="variable">
+		<div>
+			<h4>Modificacion de bind con boton</h4>
+			<p>{{#contador}} = {{contador}}</p>
+			<button label="boton">{{#contador}} + 1</button>
+		</div>
+		<div>
+			<h4>Modificacion de bind con input</h4>
+			<p>{{#texto}} = {{texto}}</p>
+			<input type="text" label="input" value="{{texto}}" />
+		</div>
+	</div>
+
+	<h2>Router</h2>
+	<p>El router es un objeto que vigila la url, y ejecuta diferentes eventos relacionados con esta. <br>
+		Ejemplo: router.export('/url/:variable', function(data){ alert('Ha cambiado la url y la variable es: '+data.variable); });</p>
+
+	<h3>change</h3>
+	<p>El metodo principal de router, se usa para cambiar la url. <br>
+		Ejemplo: router.change('/url/admin'); //Usado con la explicacion de router devolvera un alert con: "Ha cambiado la url y la variable es: admin". </p>
+
+	<h3>Router include</h3>
+	<p>Es un comentario HTML con el formato: &lt;!-- router NOMBRE URL:variable --&gt;(:variable es opcional y sera explicado en la seccion de show). <br>
+		Ejemplo: &lt;!-- router usuario /user/:variable --&gt;</p>
+
+	<h3>show</h3>
+	<p>Este metodo imprime el html de la url de "Router include", como parametro opcional esta dar un objeto cuyos atributos se reemplazaran con los nombres de la url. <br>
+		Ejemplo: router.show('NOMBRE', {variable: 1}) //buscara la ruta http /user/1 </p>
+
+	<h3>hidden</h3>
+	<p>Este metodo se utiliza para borrar el contenido agregado por router.show. <br>
+		Ejemplo: router.hidden('NOMBRE'); //borrara todo lo agregado al ejecutar router.show('NOMBRE')</p>
+
+	<div name="router">
+		<p>Se incrusto el comentario HTML &lt;!-- router routerload routerLoad.html?nombre=:name --&gt;</p>
+		<div>
+			<h4>Show y change</h4>
+			<p>router.export('/section/:name', function(data){ router.show('routerload', data); }); <br>
+				router.change('/section/home');</p>
+			<button label="boton">Cambiar ruta</button>
+			<!-- router routerload routerLoad.html?nombre=:name -->
+		</div>
+		<div>
+			<h4>Hidden y change</h4>
+			<p>router.export('/', function(data){ router.hidden('routerload'); }); <br>
+				router.change('/');</p>
+			<button label="boton2">Volver ruta</button>
+		</div>
+	</div>
+
+	<h2>Include</h2>
+	<p>Se puede incluir el contenido de una url en el lugar donde esta el include, para esto hay que incrustar un comentario HTML, la url puede estar con bind y el include dentro de un entorno. <br>
+		Ejemplo: &lt;!-- include getLoad.html --&gt;</p>
+	<div>
+		<!-- include getLoad.html -->
 	</div>
 </body>
 <script type="text/javascript" src="js/labeling.js"></script>
