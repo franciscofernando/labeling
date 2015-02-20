@@ -1,8 +1,6 @@
 // **https://gist.github.com/eligrey/384583
 //Crea un prototipo watch en el objeto
 if (!Object.prototype.watch){ Object.defineProperty(Object.prototype, "watch", { enumerable: false , configurable: true , writable: false , value: function (prop, handler) { var oldval = this[prop] , newval = oldval , getter = function () { return newval; } , setter = function (val) { oldval = newval; return newval = handler.call(this, prop, oldval, val); } ; if (delete this[prop]) { Object.defineProperty(this, prop, { get: getter , set: setter , enumerable: true , configurable: true }); } } }); }
-//Crea un prototipo watch en el arreglo
-if (!Array.prototype.watch){Array.defineProperty(Array.prototype, "watch", {enumerable: false ,configurable: true ,writable: false ,value: function (prop, handler) {var oldval = this[prop], newval = oldval, getter = function () { return newval; }, setter = function (val) {oldval = newval;return newval = handler.call(this, prop, oldval, val);};if (delete this[prop]) {Array.defineProperty(this, prop, {get: getter, set: setter, enumerable: true, configurable: true});}}});}
 
 $.fn.changeAll = function(callback){
 	var este = this;
@@ -39,7 +37,7 @@ var model = {
 			//Crea las secciones scope, y object en el modelo
 			model[nameModel] = valueModel;
 			model[nameModel]['scope'] = [];
-			model[nameModel]['object'] = $('*[name='+nameModel+']');
+			model[nameModel]['object'] = $('*[env='+nameModel+']');
 		}else{
 			//Informa que el nombre del modelo esta restringido
 			console.log('The word "'+nameModel+'" is restricted.');
@@ -52,7 +50,7 @@ var model = {
 		//Recorre todos los elementos hijos
 		obj.find('*').each(function(){
 			//Valida si el modelo del padre es igual al modelo del elemento
-			if( $(this).closest('*[name]').attr('name') == obj.attr('name') ){
+			if( $(this).closest('*[env]').attr('env') == obj.attr('env') ){
 
 				var text = ( $(this).is('input, textarea') )?$(this).val():$(this).text();
 					text = (this.modelText)?this.modelText:this.modelText = text; //Valida el binding
@@ -128,9 +126,9 @@ var controller = {
 							//Al cambiar el valor de la variable se recarga los bindings del modelo
 							model.reload(este);
 							//Recarga el modelo de los elementos hijos
-							$(obj).find('*[name]').each(function(){
-								var name = $(this).attr('name');
-								model.reload(model[name]);
+							$(obj).find('*[env]').each(function(){
+								var env = $(this).attr('env');
+								model.reload(model[env]);
 							});
 						}, 20);
 						return val;
@@ -242,12 +240,12 @@ $('*').each(function(){
 						.after(data) //Despues del comentario imprime el conenido del archivo
 						.remove(); //Elimina el comentario
 
-					//Valida si el comentario tiene como padre un elemento con atributo name=""
-					if( $(este).closest('*[name]').length ){
-						var name = $(este).closest('*[name]').attr('name');
+					//Valida si el comentario tiene como padre un elemento con atributo env=""
+					if( $(este).closest('*[env]').length ){
+						var env = $(este).closest('*[env]').attr('env');
 
 						//Recarga el modelo del atributo para activar el binding
-						model.reload(model[name]);
+						model.reload(model[env]);
 					}
 				});
 			}else if( /^\s+?router\s[a-zA-Z0-9]+\s.+/.test(e.nodeValue) ){
@@ -269,25 +267,25 @@ $(document).ready(function(){
 	//Llama el evento router
 	window.onhashchange();
 
-	//Busca todos los elementos con name=""
-	$('*[name]').each(function(){
-		var name = $(this).attr('name');
+	//Busca todos los elementos con env=""
+	$('*[env]').each(function(){
+		var env = $(this).attr('env');
 
 		//Si no existe el modelo o controlador del elemento los crea "vacíos"
-		(model[name])?model[name]:model.export(name, {});
-		(controller[name])?controller[name]:controller.export(name, function(){});
+		(model[env])?model[env]:model.export(env, {});
+		(controller[env])?controller[env]:controller.export(env, function(){});
 		
-		//Valida si este elemento tiene un padre con name="" 
-		if( $(this).parents('*[name]').length ){
+		//Valida si este elemento tiene un padre con env="" 
+		if( $(this).parents('*[env]').length ){
 
 			//Por cada padre guarda en scope su modelo
-			$(this).parents('*[name]').each(function(){
-				var attr = $(this).attr('name');
-				model[name]['scope'][model[name]['scope'].length] = model[attr];
+			$(this).parents('*[env]').each(function(){
+				var attr = $(this).attr('env');
+				model[env]['scope'][model[env]['scope'].length] = model[attr];
 			});
 		}
 
 		//Llama al controlador del elemento
-		controller[name].call(model[name], this);
+		controller[env].call(model[env], this);
 	});
 });

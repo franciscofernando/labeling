@@ -8,9 +8,9 @@
 	<h2>Introducción</h2>
 	<p>Labeling intenta ser un MV*, simple y flexible, rescata las buenas ideas de sus pares</p>
 
-	<h2>Atributo Name</h2>
-	<p>Lo principal en labeling es el atributo "name", este le da una identidad al elemento y lo transforma en un entorno.<br>
-		Ejemplo: &lt;div name="elemento" &gt; &lt;/div&gt;</p>
+	<h2>Enviroment(Entorno)</h2>
+	<p>Lo principal en labeling es el atributo "env", este le da una identidad al elemento y lo transforma en un entorno.<br>
+		Ejemplo: &lt;div env="elemento" &gt; &lt;/div&gt;</p>
 	
 	<h2>Modelo</h2>
 	<p>El modelo es espacio donde se guardan los atributos y metodos del entorno, se inicializa con el nombre del entorno y un objeto con los datos. <br>
@@ -28,11 +28,11 @@
 
 	<h2>Bind(Lazo)</h2>
 	<p>Dentro de un elemento(que contenga solo texto) se puede poner etiquetas bind(Lazos) de esta manera: {{nombreDelAtributo}}</p>
-	<div name="contenedor">
+	<div env="contenedor">
 		<p>Binding: {{#bind}} = {{bind}}</p>
 		<h3>Herencia</h3>
 		<p>Si hay un entorno dentro de otro entorno, este hereda los datos de su modelo solo si el entorno hijo no tiene datos con el mismo nombre:</p>
-		<ul name="heredero">
+		<ul env="heredero">
 			<li>Variable heredada: {{#bind}} = {{bind}}</li>
 			<li>Variable propia: {{#propio}} = {{propio}}</li>
 		</ul>
@@ -52,7 +52,7 @@
 	
 	<h2>Modificación de atributos</h2>
 	<p>Si hay un lazo con un atributo, este cambia automaticamente si este cambia en el modelo.</p>
-	<div name="variable">
+	<div env="variable">
 		<div>
 			<h4>Modificacion de bind con boton</h4>
 			<p>{{#contador}} = {{contador}}</p>
@@ -87,7 +87,7 @@
 
 	
 	<p>Se incrusto el comentario HTML &lt;!-- router routerload routerLoad.html?nombre=:name --&gt;</p>
-	<div name="router">
+	<div env="router">
 		<div>
 			<h4>Show y change</h4>
 			<p>router.export('/section/:name', function(data){ router.show('routerload', data); }); <br>
