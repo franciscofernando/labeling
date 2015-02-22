@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Conoce a labeling.js</title>
+		<meta charset="utf-8" />
+		<meta description="Labeling.js trata de ser un simple MV* para humanos" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+	</head>
+	<body>
+		<header>
+			<nav class="center">
+				<h1>Labeling.js</h1>
+				<ul>
+					<li><a href="#/" class="active">Inicio</a></li>
+					<!--<li><a href="#/ejemplos">Ejemplos</a></li>
+					<li><a href="#/api">API</a></li>-->
+				</ul>
+			</nav>
+		</header>
+		<h2 class="center">Labeling.js trata de ser un simple MV* para humanos</h2>
+		<div id="botones" class="center">
+			<a href="http://labeling.franciscofernando.com/versions/labeling-0.2.js" class="boton" download>Descargar última versión</a>
+		</div>
+		<div class="center">
+			<section>
+				<h3>Enviroment(Entorno)</h3>
+				<p>Lo principal en labeling es el atributo "env", este le da una identidad al elemento y lo transforma en un entorno.</p>
+				<div data-height="268" data-theme-id="12497" data-slug-hash="ogqKpa" data-default-tab="html" data-user="franciscofernando" class='codepen'></div>
+			</section>
+			<section>
+				<h3>Model(Modelo) & Bind(Lazo)</h3>
+				<p>El modelo es espacio donde se guardan los atributos y/o metodos del entorno, se inicializa con el nombre del entorno y un objeto con los datos.</p>
+				<p>Dentro de un elemento(que contenga solo texto) se puede poner etiquetas bind(Lazos) de esta manera: <br> &lt;p&gt;{{nombreDelAtributo}}&lt;/p&gt; o en un campo de texto se puede poner asi: &lt;input type="text=" value="{{nombreDelAtributo}}" /&gt;</p>
+				<div data-height="268" data-theme-id="12497" data-slug-hash="emMaMb" data-default-tab="html" data-user="franciscofernando" class='codepen'></div>
+			</section>
+			<section>
+				<h3>Controller(Controlador)</h3>
+				<p>El controlador es una función que se ejecuta al existir el entorno, se inicializa con el nombre del entorno y una función.</p>
+				<div data-height="268" data-theme-id="12497" data-slug-hash="myxYKR" data-default-tab="html" data-user="franciscofernando" class='codepen'></div>
+			</section>
+			<section>
+				<h3>Label(Etiqueta)</h3>
+				<p>No solo el entorno puede ser identificado sino tambien los elementos con el atributo "label", esto sirve para usar el elemento de una manera mas facíl en el controlador.
+				<div data-height="268" data-theme-id="12497" data-slug-hash="LEdoBV" data-default-tab="html" data-user="franciscofernando" class='codepen'></div>
+			</section>
+			<section>
+				<h3>Modificación de atributos</h3>
+				<p>Si hay un lazo con un atributo, este cambia automaticamente si este cambia en el modelo.</p>
+				<div data-height="268" data-theme-id="12497" data-slug-hash="wBmbxP" data-default-tab="html" data-user="franciscofernando" class='codepen'></div>
+			</section>
+			<section>
+				<h3>Router(Enrutador)</h3>
+				<p>El router es un objeto que vigila la url, y ejecuta diferentes eventos relacionados con esta.</p>
+				<p>Ejemplo: <br> <strong>router.export('/:variable', function(data){ alert('Ha cambiado la url y la variable es: '+data.variable); });</strong></p>
+				<article>
+					<h3>Change</h3>
+					<p>El metodo principal de router, se usa para cambiar la url.</p>
+					<p>Ejemplo: <br> <strong>router.change('/admin'); //Usado con la explicación anterior devolvera un alert con: "Ha cambiado la url y la variable es: admin".</strong></p>
+				</article>
+				<article>
+					<h3>Router include</h3>
+					<p>Es un comentario HTML con el formato: &lt;!-- router NOMBRE URL:variable --&gt;(:variable es opcional).</p>
+					<p>Ejemplo: <br> <strong>&lt;!-- router usuario /user/:variable --&gt;</strong></p>
+				</article>
+				<article>
+					<h3>Show</h3>
+					<p>Este metodo imprime el html de la url de "Router include", como parametro opcional está el dar un objeto cuyos atributos se reemplazaran con las variables del include.</p>
+					<p>Ejemplo: <br> <strong>router.show('usuario', {variable: 1}) //incluirá la ruta HTTP /user/1</strong></p>
+				</article>
+				<article>
+					<h3>Hidden</h3>
+					<p>Este metodo se utiliza para eliminar el contenido agregado por "router.show".</p>
+					<p>Ejemplo: <br> <strong>router.hidden('usuario'); //borrará todo lo agregado al ejecutar router.show('usuario')</strong></p>
+				</article>
+			</section>
+			<section>
+				<h3>Include</h3>
+				<p>Se puede incluir el contenido de una url en el lugar donde esta el include, para esto hay que incrustar un comentario HTML, el include puede estar dentro de un entorno.</p>
+				<p>Ejemplo: <strong>&lt;!-- include url.html --&gt;</strong></p>
+			</section>
+		</div>
+		<footer></footer>
+	</body>
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/labeling.js"></script>
+	<script type="text/javascript" src="js/indexApp.js"></script>
+	<script async src="//assets.codepen.io/assets/embed/ei.js"></script>
+</html>

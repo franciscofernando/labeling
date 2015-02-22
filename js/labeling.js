@@ -9,9 +9,11 @@ $.fn.changeAll = function(callback){
 
 	function init(){
 		interval = setInterval(function(){
-			if(val != $(este).val()){
+			if( val != $(este).val() ){
+				if(! /^\{\{.+\}\}$/.test(val) ){
+					callback.call(este);
+				}
 				val = $(este).val();
-				callback.call(este);
 			}
 		}, 20);		
 	}
@@ -92,13 +94,19 @@ var model = {
 					if( $(this).is('input, textarea') ){
 						var elem = this;
 						if(!this.changeAllEvent){
+							elem.changeEvent = true;
 							$(this).changeAll(function(){
 								elem.changeAllEvent = true;
+								elem.changeEvent = false;
 								var attr = elem.modelText.replace(/\{/g, '').replace(/\}/g, '');
 								e[attr] = $(this).val();
 							});
 						}
-						$(this).val(text); //Cambia el value del input
+						if(elem.changeEvent){
+							$(this).val(text); //Cambia el value del input
+						}else{
+							elem.changeEvent = true;
+						}
 					}else{
 						$(this).html(text); //Imprime el texto nuevo
 					}
@@ -119,7 +127,6 @@ var controller = {
 
 				//Recorre todos las variables de su modelo
 				for(i in this){
-
 					//Empieza a "escuchar" si hay un cambio en la variable
 					this.watch(i, function(prop, oldval, val){
 						setTimeout(function(){

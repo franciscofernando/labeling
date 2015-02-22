@@ -1,0 +1,129 @@
+@font-face
+	font-family 'Open Sans'
+	font-style normal
+	font-weight 300
+	src local('Open Sans Light'), local('OpenSans-Light'), url('fonts/Open-Sans-Light.woff') format('woff')
+@font-face
+	font-family 'Open Sans'
+	font-style normal
+	font-weight 400
+	src local('Open Sans'), local('OpenSans'), url('fonts/Open-Sans.woff') format('woff')
+@font-face
+	font-family 'Open Sans'
+	font-style normal
+	font-weight 600
+	src local('Open Sans Semibold'), local('OpenSans-Semibold'), url('fonts/Open-Sans-Semibold.woff') format('woff')
+
+trans()
+	-webkit-transition arguments
+	-moz-transition arguments
+	-o-transition arguments
+	-ms-transition arguments
+	transition arguments
+noSelect()
+	-webkit-touch-callout none
+	-webkit-user-select none
+	-khtml-user-select none
+	-moz-user-select none
+	-ms-user-select none
+	user-select none
+
+.center
+	width 1000px
+	margin 0 auto
+.boton
+	display inline-block
+	background #B0C591
+	color #fff!important
+	border-bottom 2px solid #9EB281
+	border-top 0px solid #fff
+	padding 10px 20px
+	border-radius 4px
+	text-decoration none
+	noSelect()
+	trans(all .1s linear)
+	&:active
+		border-top 2px solid #9EB281
+		border-bottom 0px solid #fff
+body
+	font-family 'Open Sans'
+	font-size 16px
+	color #333
+	margin 0px
+	header
+		width 100%
+		height 50px
+		background #B0C591
+		nav
+			overflow hidden
+			h1
+				float left
+				line-height 50px
+				margin 0px
+				color #fff
+				noSelect()
+			ul
+				float right
+				margin 0px
+				padding 0px
+				li
+					list-style none
+					float left
+					vertical-align bottom
+					a
+						display inline-block
+						text-decoration none
+						color #fff
+						line-height 50px
+						padding 0px 10px
+						height 50px
+						position relative
+						&.active
+							color #5F6752
+							&:after
+								height 0px!important
+						&:after
+							content ""
+							position absolute
+							left 0px
+							width 100%
+							height 0px
+							background #96A97A
+							bottom 0px
+							trans(all .2s linear)
+						&:hover:after
+							height 4px
+	h2
+		display block
+		margin 70px auto 50px auto!important
+		font-weight 100
+		text-align center
+		font-size 35px
+	#botones
+		text-align center
+		margin-bottom 70px
+	section
+		padding 20px 0px
+		position relative
+		&:after, & article:before
+			content ""
+			background #b0c591
+			width 80%
+			left 10%
+			height 1px
+			position absolute
+			bottom 0px
+		& article:before
+			top 0px
+			width 100%!important
+			left 0%!important
+			bottom inherit!important
+			background #ccc
+		&:last-child:after
+			height 0px!important
+		article
+			margin-left 30px
+			position relative
+			color #555
+			h3
+				padding-top 20px
