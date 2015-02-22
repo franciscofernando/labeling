@@ -1,2 +1,4 @@
 # labeling.js
-MV* for humans
+Frontend MV* for humans
+
+DOC: http://labeling.franciscofernando.com
