@@ -1,6 +1,6 @@
-function queryElement(elements, selector){
+function queryElement(elements, selector, indicator){
 	if(elements.window){
-		this[0] = elements.document.documentElement;
+		this[0] = window;
 		this.length = 1;
 		return this;
 	}
@@ -10,18 +10,30 @@ function queryElement(elements, selector){
 	this.length = i;
 	this.selector = selector || '';
 	return this;
-}
-function $(selector){
-	if(typeof selector == 'function'){
+};
+function miniQuery(selector){
+	if(typeof selector == 'function'){ //Document ready
 		document.addEventListener('DOMContentLoaded', selector);
-	}else if(typeof selector == 'string'){
+	}else if(typeof selector == 'string'){ //Selector
 		var elements = document.querySelectorAll( selector );
 		var ar = [].slice.call( elements );
 		return new queryElement(ar, selector);
-	}else if(typeof selector.length != 'undefined'){
-		return new queryElement(selector);
+	}else if( ((typeof selector.length != 'undefined')&&(typeof selector.selector == 'string')) ){ //QueryElement
+		return selector;
 	}else if(typeof selector == 'object'){
-		return new queryElement([selector]);
+		if(typeof selector.length != 'undefined'){
+			if(selector.length){
+				if(selector.tagName){
+					return new queryElement([selector]);
+				}else{
+					return new queryElement(selector);
+				}
+			}else{
+				return new queryElement(selector);				
+			}
+		}else{
+			return new queryElement([selector]);
+		}
 	}
 };
 
@@ -40,13 +52,23 @@ queryElement.prototype.removeClass = function(name){
 	}
 	return this;
 };
+queryElement.prototype.toggleClass = function(name){
+	for(var i = 0; i < this.length; i++){
+		if( miniQuery(this[i]).is('.'+name) ){
+			miniQuery(this[i]).removeClass(name);
+		}else{
+			miniQuery(this[i]).addClass(name);
+		}
+	}
+	return this;
+};
 queryElement.prototype.css = function(name, value){
 	function cssName(name){
 		return name.replace(/-[a-z]/, function(m){ return m.toUpperCase().replace(/^\-/, ''); });
 	}
 	if(typeof name == 'string'){
-		if(!value){
-			return this[0]['style'][cssName(name)];
+		if(typeof value == 'undefined'){
+			return window.getComputedStyle(this[0],null).getPropertyValue(name);
 		}else{
 			for(var i = 0; i < this.length; i++){
 				this[i]['style'][cssName(name)] = value;
@@ -69,7 +91,10 @@ queryElement.prototype.each = function(callback){
 	return this;
 };
 queryElement.prototype.eq = function(pos){
-	return $(this[pos]);
+	if(this[pos]){
+		return miniQuery(this[pos]);
+	}
+	return miniQuery([]);
 };
 queryElement.prototype.find = function(selector){
 	var ar = [];
@@ -81,49 +106,67 @@ queryElement.prototype.find = function(selector){
 			}
 		}
 	}
-	return $(ar);
+	return miniQuery(ar);
 };
 queryElement.prototype.children = function(selector){
+	var ar = [];
 	for(var i = 0; i < this[0].children.length; i++){
-		if( (selector)&&(i == 0) ){
-			return this[0].children[j];
-		}
 		if( this[0].children[i].matches(selector) ){
-			return this[0].children[i];
+			ar.push(this[0].children[i]);
 		}
 	}
-	return $([]);
+	return miniQuery(ar);
 };
 queryElement.prototype.height = function(val){
+	var this2 = this;
+	for(var i = 0; i < this2.length; i++){
+		if(this2[i].window){
+			this2[i] = window.document.documentElement;
+		}
+	}
 	if(!val){
-		return this[0].offsetHeight;
+		return this2[0].offsetHeight;
 	}else{
-		for(var i = 0; i < this.length; i++){
+		for(var i = 0; i < this2.length; i++){
 			var height = (typeof val == 'string')?val:val+'px';
-			$(this[i]).css('height', height);
+			miniQuery(this2[i]).css('height', height);
 		}
 		return this;
 	}
 };
 queryElement.prototype.width = function(val){
+	var this2 = this;
+	for(var i = 0; i < this2.length; i++){
+		if(this2[i].window){
+			this2[i] = window.document.documentElement;
+		}
+	}
 	if(!val){
-		return this[0].offsetWidth;
+		return this2[0].offsetWidth;
 	}else{
-		for(var i = 0; i < this.length; i++){
+		for(var i = 0; i < this2.length; i++){
 			var height = (typeof val == 'string')?val:val+'px';
-			$(this[i]).css('width', height);
+			miniQuery(this2[i]).css('width', height);
 		}
 		return this;
 	}
 };
 queryElement.prototype.attr = function(name, val){
 	if(!val){
-		return this[0].getAttribute(name);
+		if(this.length){
+			if(this[0].getAttribute){
+				return this[0].getAttribute(name)||'';
+			}else{
+				return '';
+			}
+		}else{
+			return '';
+		}
 	}else{
 		for(var i = 0; i < this.length; i++){
 			this[i].setAttribute(name, val);
 		}
-		return val;
+		return this;
 	}
 };
 queryElement.prototype.removeAttr = function(name){
@@ -143,7 +186,7 @@ queryElement.prototype.text = function(text){
 	}
 };
 queryElement.prototype.html = function(html){
-	if(html){
+	if(typeof html == 'string'){
 		for(var i = 0; i < this.length; i++){
 			this[i].innerHTML = html;
 		}
@@ -162,7 +205,7 @@ queryElement.prototype.contents = function(){
 			}
 		}
 	}
-	return $(ar);
+	return miniQuery(ar);
 };
 queryElement.prototype.filter = function(callback){
 	var ar = [];
@@ -176,7 +219,7 @@ queryElement.prototype.filter = function(callback){
 			ar.push(this[i]);
 		}
 	}
-	return $(ar);
+	return miniQuery(ar);
 };
 queryElement.prototype.remove = function(){
 	for(var i = 0; i < this.length; i++){
@@ -189,14 +232,14 @@ queryElement.prototype.parent = function(selector){
 	while(element.parentElement){
 		if(selector){
 			if(element.parentElement.matches(selector)){
-				return $(element.parentElement);
+				return miniQuery(element.parentElement);
 			}
 		}else{
-			return $(element.parentElement);
+			return miniQuery(element.parentElement);
 		}
 		element = element.parentElement;
 	}
-	return $([]);
+	return miniQuery([]);
 };
 queryElement.prototype.parents = function(selector){
 	var ar = [];
@@ -211,13 +254,18 @@ queryElement.prototype.parents = function(selector){
 		}
 		element = element.parentElement;
 	}
-	return $(ar);
+	return miniQuery(ar);
 };
 queryElement.prototype.is = function(selector){
-	return this[0].matches(selector);
+	if(this.length){
+		if(this[0].matches){
+			return this[0].matches(selector);
+		}
+	}
+	return false;
 };
 queryElement.prototype.val = function(value){
-	if(!value){
+	if(typeof value == 'undefined'){
 		return this[0].value;
 	}else{
 		for(var i = 0; i < this.length; i++){
@@ -237,7 +285,7 @@ queryElement.prototype.append = function(html){
 	}
 	return this;
 };
-queryElement.prototype.preppend = function(html){
+queryElement.prototype.prepend = function(html){
 	for(var i = 0; i < this.length; i++){
 		var node = document.createElement('div');
 			node.innerHTML = html;
@@ -279,34 +327,209 @@ queryElement.prototype.next = function(selector){
 	while(element.nextElementSibling){
 		if(selector){
 			if(element.nextElementSibling.matches(selector)){
-				return $(element.nextElementSibling);
+				return miniQuery(element.nextElementSibling);
 			}
 			element = element.nextElementSibling;				
 		}else{
-			return $(element.nextElementSibling);
+			return miniQuery(element.nextElementSibling);
 		}
 	}
-	return $([]);
+	return miniQuery([]);
 };
 queryElement.prototype.prev = function(selector){
 	var element = this[0];
 	while(element.previousElementSibling){
 		if(selector){
 			if(element.previousElementSibling.matches(selector)){
-				return $(element.previousElementSibling);
+				return miniQuery(element.previousElementSibling);
 			}
 			element = element.previousElementSibling;				
 		}else{
-			return $(element.previousElementSibling);
+			return miniQuery(element.previousElementSibling);
 		}
 	}
-	return $([]);
+	return miniQuery([]);
 }
-$.ajax = function(object){
+queryElement.prototype.last = function(){
+	return miniQuery(this[this.length-1]);
+}
+queryElement.prototype.first = function(){
+	return miniQuery(this[0]);
+}
+queryElement.prototype.index = function(){
+	if(!this.length){
+		return -1;
+	}else{
+		var parent = miniQuery(this[0]).parent();
+		if(parent.length){
+			for(var i = 0; i < parent[0].children.length; i++){
+				if(parent[0].children[i] == this[0]){
+					return i;
+				}
+			}
+		}else{
+			return -1;
+		}
+		return -1;
+	}
+};
+queryElement.prototype.animate = function(object, milliseconds, callback){
+	var milliseconds = milliseconds||300;
+	var callback = callback||function(){};
+	
+	function cssName(name){
+		return name.replace(/-[a-z]/, function(m){ return m.toUpperCase().replace(/^\-/, ''); });
+	}
+	function animate(object, property, start, end, unity){
+		var frame_rate = 0.06;
+		var frame = 0;
+		var delta = (end-start)/milliseconds/frame_rate;
+		var handle = setInterval(function() {
+			frame++;
+			var value = start+delta*frame;
+				value = ( ((delta < 0)?(value>end):(value<end)) )?value:end;
+			object.style[property] = value+unity;
+			if (value == end){
+				callback.call(miniQuery(object));
+				clearInterval(handle);
+			}
+		},1/frame_rate);
+	}
+
+	for(var i = 0; i < this.length; i++){
+		for(var j in object){
+			var cssVal = miniQuery(this[i]).css(j);
+			var start = parseInt( cssVal );
+			var end = parseInt(object[j]);
+			var unity = cssVal.replace(/[0-9\.]/g, '');
+			animate(this[i], cssName(j), start, end, unity);
+		}
+	}
+	return this;
+};
+queryElement.prototype.defaultDisplay = function(){
+	var name = this[0].localName;
+	if( (name=='div')||(name=='body')||(name=='section')||(name=='article')||(name=='footer')||(name=='header')||(name=='nav')||(name=='form')||(name=='ul') ){
+		return 'block';
+	}else{
+		return 'inline-block';
+	}
+};
+queryElement.prototype.fadeIn = function(milliseconds, callback){
+	if(typeof milliseconds == 'function'){
+		var callback = milliseconds;
+		var milliseconds = null;
+	}	
+	for(var i = 0; i < this.length; i++){
+		var element = miniQuery(this[i]);
+		if( element.css('display') == 'none' ){
+			element
+				.css({
+					display : (element[0].fadeDisplay)?element[0].fadeDisplay:element.defaultDisplay(),
+					opacity : 0
+				})
+				.animate({
+					opacity : 1
+				}, milliseconds, callback);
+		}
+	}
+	return this;
+};
+queryElement.prototype.fadeOut = function(milliseconds, callback){
+	if(typeof milliseconds == 'function'){
+		var callback = milliseconds;
+		var milliseconds = null;
+	}
+	for(var i = 0; i < this.length; i++){
+		var element = miniQuery(this[i]);
+		if( element.css('display') != 'none' ){
+			element
+				.animate({
+					opacity : 0
+				}, milliseconds, function(){
+					miniQuery(this)[0].fadeDisplay = (miniQuery(this).css('display') != 'none')?miniQuery(this).css('display'):false;
+					miniQuery(this).css('display', 'none');
+					if(callback){
+						callback();
+					}
+				});
+		}
+	}
+	return this;
+};
+queryElement.prototype.fadeToggle = function(milliseconds, callback){
+	for(var i = 0; i < this.length; i++){
+		if( miniQuery(this[i]).css('display') == 'none' ){
+			miniQuery(this[i]).fadeIn(milliseconds, callback);
+		}else{
+			miniQuery(this[i]).fadeOut(milliseconds, callback);
+		}
+	}
+	return this;
+}
+queryElement.prototype.slideDown = function(milliseconds, callback){
+	if(typeof milliseconds == 'function'){
+		var callback = milliseconds;
+		var milliseconds = null;
+	}
+	for(var i = 0; i < this.length; i++){
+		var element = miniQuery(this[i]);
+		if( element.css('display') == 'none' ){
+			element
+				.css({
+					display: (element[0].fadeDisplay)?element[0].fadeDisplay:element.defaultDisplay()
+				})
+			var height = element.css('height');
+			element
+				.css({
+					height: '0px'
+				})
+				.animate({
+					height: height
+				}, milliseconds, callback);
+		}
+	}
+	return this;
+};
+queryElement.prototype.slideUp = function(milliseconds, callback){
+	if(typeof milliseconds == 'function'){
+		var callback = milliseconds;
+		var milliseconds = null;
+	}
+	for(var i = 0; i < this.length; i++){
+		var element = miniQuery(this[i]);
+		if( element.css('display') != 'none' ){
+			element
+				.animate({
+					height: '0px'
+				}, milliseconds, function(){
+					miniQuery(this)[0].fadeDisplay = (miniQuery(this).css('display') != 'none')?miniQuery(this).css('display'):false;
+					miniQuery(this).css({
+						display: 'none',
+						height: ''
+					});
+					if(callback){
+						callback();
+					}
+				});
+		}
+	}
+}
+queryElement.prototype.slideToggle = function(milliseconds, callback){
+	for(var i = 0; i < this.length; i++){
+		if( miniQuery(this[i]).css('display') == 'none' ){
+			miniQuery(this[i]).slideDown(milliseconds, callback);
+		}else{
+			miniQuery(this[i]).slideUp(milliseconds, callback);
+		}
+	}
+	return this;
+}
+miniQuery.ajax = function(object){
 	var ajax = new XMLHttpRequest();
 	var type = (object.type)?object.type.toUpperCase():'GET';
 	var url = (object.url || '');
-	var data = object.data || '';
+	var data = '';
 	var dataType = object.dataType || '';
 	if(typeof object.data == 'object'){
 		for(var i in object.data){
@@ -321,9 +544,22 @@ $.ajax = function(object){
 	ajax.onreadystatechange = function(){
 		if (ajax.readyState==4 && ajax.status==200){
 			if(ajax.doneCallback){
-				var response = (dataType == 'JSON')?eval('('+ajax.responseText+')'):ajax.responseText;
-				ajax.doneCallback(response);
-				delete ajax.doneCallback;
+				if( dataType.toUpperCase() == 'JSON' ){
+					try{
+						var resp = eval('('+ajax.responseText+')');
+						ajax.doneCallback(resp);
+						delete ajax.doneCallback;
+					}
+					catch(e){
+						if(ajax.errorCallback){
+							ajax.errorCallback(ajax.responseText);
+							delete ajax.errorCallback;
+						}
+					}
+				}else{
+					ajax.doneCallback(response);
+					delete ajax.doneCallback;
+				}
 			}
 		}else{
 			if(ajax.errorCallback){
@@ -344,13 +580,13 @@ $.ajax = function(object){
 	if(type == 'GET'){
 		ajax.send();
 	}else{
-		ajax.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		ajax.setRequestHeader("Content-type","application/x-www-form-urlencoded; charset=UTF-8");
 		ajax.send(data);
 	}
 	return ajax;
 };
-$.get = function(url, callback){
-	$.ajax({url: url}).done(callback);
+miniQuery.get = function(url, callback){
+	miniQuery.ajax({url: url}).done(callback);
 };
 (function(){
 	function setEvent(event, callbackDefault){
@@ -361,7 +597,7 @@ $.get = function(url, callback){
 				for(var i = 0; i < this.length; i++){
 					this[i].addEventListener.call(this[i], event, function(e){
 						callback.call(this, e);
-					});
+					}, false);
 				}						
 			}
 			return this;
@@ -369,20 +605,19 @@ $.get = function(url, callback){
 	}
 
 	var events = {
-		click : function(){
-			this[0].click();
-		},
-		dblclick : false,
+		afterprint : false,
+		animationend : false,
+		animationiteration : false,
+		animationstart : false,
+		beforeprint : false,
+		blur : function(){ this[0].blur(); },
 		change : false,
-		focus : function(){
-			this[0].focus();
-		},
-		blur : function(){
-			this[0].blur();
-		},
-		cut : false,
-		copy : false,
+		click : function(){ this[0].click(); },
 		contextmenu : false,
+		copy : false,
+		cut : false,
+		dblclick : false,
+		DOMNodeInserted : false,
 		drag : false,
 		dragend : false,
 		dragenter : false,
@@ -390,6 +625,9 @@ $.get = function(url, callback){
 		dragover : false,
 		dragstart : false,
 		drop : false,
+		focus : function(){ this[0].focus(); },
+		fullscreenchange : false,
+		input : false,
 		keydown : false,
 		keypress : false,
 		keyup : false,
@@ -398,53 +636,49 @@ $.get = function(url, callback){
 		mouseenter : false,
 		mouseleave : false,
 		mousemove : false,
+		mouseup : false,
+		resize : false,
 		scroll : false,
-		submit : false,
-		afterprint : false,
-		beforeprint : false,
-		animationstart : false,
-		animationiteration : false,
-		animationend : false,
-		fullscreenchange : false,
+		select : function(){ this[0].select(); },
 		storage : false,
+		submit : false,
 		touchcancel : false,
-		touchenter : false,
 		touchend : false,
+		touchenter : false,
 		touchleave : false,
 		touchmove : false,
-		touchstart : false,
-		DOMNodeInserted : false
+		touchstart : false
 	};
 	for(var i in events){
 		setEvent(i, events[i]);
 	}
 })();
+queryElement.prototype.trigger = function(event){
+	for(var i = 0; i < this.length; i++){
+		this[i].dispatchEvent( new Event(event) );
+	}
+	return this;
+};
 queryElement.prototype.on = function(event, selector, callback){
-	if( (typeof selector == 'function')||(this.selector == '') ){
+	if( typeof selector == 'function' ){
 		for(var i = 0; i < this.length; i++){
 			this[i][event](selector);
 		}
 	}else{
 		for(var i = 0; i < this.length; i++){
-			$(this[i]).find(selector)[event](callback);
-			if(!this[i].livesEvents){
-				this[i].livesEvents = [];
-			}
-			this[i].livesEvents.push({
-				selector : selector,
-				event: event,
-				callback : callback
-			});
-			$(this[i]).DOMNodeInserted(function(e){
-				if( this.livesEvents ){
-					for(var i = 0; i < this.livesEvents.length; i++){
-						if( e.srcElement.matches(this.livesEvents[i].selector) ){
-							$(e.srcElement)[event](callback);
-						}
+			miniQuery(this[i]).find(selector)[event](callback);
+			miniQuery(this[i]).DOMNodeInserted(function(e){
+				if(e.srcElement.matches){
+					if( e.srcElement.matches(selector) ){
+						miniQuery(e.srcElement)[event](callback);
 					}
+					miniQuery(e.srcElement).find(selector).each(function(){
+						miniQuery(this)[event](callback);
+					});
 				}
 			});
 		}
 	}
 	return this;
 };
+var $ = (window.jQuery)?window.jQuery:miniQuery;

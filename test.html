@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+	</head>
+	<body>
+		<form env="form">
+			<h3>Acceso a loud</h3>
+			<input type="text" name="pass" placeholder="Contraseña" bind="{{pass}}" />
+			<p>{{pass | spaces2}}</p>
+		</form>
+	</body>
+	<script type="text/javascript" src="js/miniQuery.js"></script>
+	<script type="text/javascript" src="js/labeling.js"></script>
+	<!--<script type="text/javascript" src="js/labeling.min.js"></script>-->
+	<script type="text/javascript">
+		filter.spaces = function(c){
+			return this.replace(/\s/g, c||'_');
+		};
+		model.export('form', {
+			email : '',
+			pass : ''
+		});
+		controller.export('form', function(labels){
+			var data = this;
+			labels.form.submit(function(e){
+				e.preventDefault();
+				alert('submit');
+			});
+		});
+	</script>
+</html>
